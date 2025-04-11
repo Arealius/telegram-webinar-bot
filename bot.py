@@ -51,7 +51,7 @@ def notify_webinar():
 
 # Настройка планировщика
 scheduler = BackgroundScheduler(timezone="Europe/Kiev")
-scheduler.add_job(notify_webinar, 'date', run_date=datetime(2025, 4, 11, 23, 05))
+scheduler.add_job(notify_webinar, 'date', run_date=datetime(2025, 4, 11, 23, 5))
 scheduler.start()
 
 # Получение токена
