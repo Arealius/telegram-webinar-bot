@@ -1,35 +1,66 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFile
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
-import os
+import os, asyncio
+from apscheduler.schedulers.background import BackgroundScheduler
 
-VIDEO_PATH = "bonus.mp4"  # Положи свой видеофайл с таким именем, если надо
+# Глобальное множество для хранения chat_id зарегистрированных пользователей
+registered_users = set()
 
+# Обработка команды /start: регистрация пользователя и отправка приветственного сообщения
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[InlineKeyboardButton("Зареєструватися на вебінар", callback_data="register")]]
+    chat_id = update.message.chat.id
+    registered_users.add(chat_id)  # Сохраняем пользователя для уведомлений
+    keyboard = [[InlineKeyboardButton("Зарегистрироваться на вебинар", callback_data="register")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("👋 Привіт! Натисни кнопку нижче, щоб зареєструватися:", reply_markup=reply_markup)
+    await update.message.reply_text(
+        "Привет! Нажмите кнопку ниже, чтобы зарегистрироваться на вебинар:",
+        reply_markup=reply_markup
+    )
 
+# Обработка нажатия кнопки регистрации
 async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer()  # Отмечаем факт нажатия
 
-    calendar_keyboard = [[InlineKeyboardButton("📅 Додати до календаря", url="https://calendar.google.com/calendar/r/eventedit?text=%D0%92%D0%B5%D0%B1%D0%B8%D0%BD%D0%B0%D1%80%3A+%D0%98%D0%98+%D0%B8+%D0%B1%D0%B8%D0%BD%D0%B0%D1%80%D0%BD%D1%8B%D0%B9+%D0%BC%D0%B0%D1%80%D0%BA%D0%B5%D1%82%D0%B8%D0%BD%D0%B3&dates=20250412T150000Z/20250412T160000Z&details=%D0%9F%D1%80%D0%B8%D1%81%D0%BE%D0%B4%D0%B8%D0%BD%D0%B5%D0%B9%D1%82%D0%B5%D1%81%D1%8C+%D0%BA+%D0%B2%D0%B5%D0%B1%D0%B8%D0%BD%D0%B0%D1%80%D1%83&location=%D0%9E%D0%BD%D0%BB%D0%B0%D0%B9%D0%BD")]]
+    # Создаем кнопку для добавления события в календарь (Google Calendar)
+    calendar_keyboard = [[InlineKeyboardButton(
+        "Добавить в календарь",
+        url="https://calendar.google.com/calendar/r/eventedit?text=Вебинар:+ИИ+и+бинарный+маркетинг&dates=20250412T150000Z/20250412T160000Z&details=Присоединяйтесь+к+нашему+вебинару,+где+мы+рассмотрим+технологии+ИИ+в+бинарном+маркетинге&location=Онлайн"
+    )]]
     calendar_markup = InlineKeyboardMarkup(calendar_keyboard)
 
     await query.message.reply_text(
-        "🎉 Ви успішно зареєструвалися на вебінар 11.04.2025 о 17:00 (Варшава) / 18:00 (Київ)!\n\n"
-        "Щоб не пропустити — додайте до календаря 👇",
+        "Поздравляем! Вы успешно зарегистрировались на вебинар, который состоится 11.04.2025 в 17:00 (Варшава) / 18:00 (Киев).\n\n"
+        "Чтобы не пропустить событие, нажмите кнопку ниже для добавления его в календарь:",
         reply_markup=calendar_markup
     )
 
+    # Отправляем бонусное видео (файл bonus.mp4 должен быть доступен)
     await query.message.reply_video(
-        video=InputFile(VIDEO_PATH),
-        caption="🎁 Подарунок: як використовувати AI для аналізу договорів 📄"
+        video=InputFile("bonus.mp4"),
+        caption="Бонус: как использовать ИИ для анализа договоров"
     )
 
-token = os.environ.get("BOT_TOKEN")  # Считываем токен из переменной окружения
+# Функция-уведомление, которую вызовет планировщик: отправляет сообщение "Внимание!" за 15 минут до вебинара
+def notify_webinar():
+    loop = asyncio.get_event_loop()
+    for chat_id in list(registered_users):
+        asyncio.run_coroutine_threadsafe(
+            app.bot.send_message(chat_id, "Внимание! Вебинар начнется через 15 минут!"),
+            loop
+        )
+
+# Настройка планировщика APScheduler
+# Здесь уведомление будет отправлено каждый день в 17:45 по киевскому времени (если вебинар проходит в 18:00)
+scheduler = BackgroundScheduler(timezone="Europe/Kiev")
+scheduler.add_job(notify_webinar, 'cron', hour=17, minute=45)
+scheduler.start()
+
+# Получаем токен из переменной окружения и создаем объект бота
+token = os.environ.get("BOT_TOKEN")
 app = ApplicationBuilder().token(token).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(register_callback, pattern="register"))
 
+# Запускаем бота с использованием длинного опроса (polling)
 app.run_polling()
