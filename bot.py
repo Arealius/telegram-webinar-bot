@@ -53,7 +53,7 @@ def notify_webinar():
 
 # Задаем конкретную дату и время для уведомления.
 # Например, уведомление в 17:45 12 апреля 2025 года по киевскому времени.
-notification_datetime = datetime(2025, 4, 11, 21, 35)
+notification_datetime = datetime(2025, 4, 11, 22, 00)
 
 # Настройка планировщика APScheduler для однократного уведомления
 scheduler = BackgroundScheduler(timezone="Europe/Kiev")
