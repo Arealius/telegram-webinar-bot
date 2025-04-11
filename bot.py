@@ -2,7 +2,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 # ТВОЙ ТОКЕН (вшит вручную)
-TOKEN = "7602339027:AAHItDPZ3Mp-J0j6C77nulpod5WKrNaM3Q"
+TOKEN = "7602339027:AAFy7JjipaQUJenNfXsRgAAkjVQbLgBiH8w"
 
 # Сформированный webhook URL
 WEBHOOK_URL = f"https://telegram-webinar-bot.onrender.com/{TOKEN}"
