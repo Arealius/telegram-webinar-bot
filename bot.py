@@ -14,5 +14,5 @@ app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 
 if __name__ == "__main__":
-    print("📡 Запускаем бота в режиме polling...")
+    print("🤖 Запускаем бота в режиме polling...")
     app.run_polling()
