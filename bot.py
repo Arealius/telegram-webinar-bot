@@ -51,17 +51,21 @@ def notify_webinar():
             loop
         )
 
-# Планировщик на 11.04.2025 18:45 (Киев)
 scheduler = BackgroundScheduler(timezone="Europe/Kiev")
-scheduler.add_job(notify_webinar, 'date', run_date=datetime(2025, 4, 12, 2, 38))
+scheduler.add_job(notify_webinar, 'date', run_date=datetime(2025, 4, 11, 18, 45))
 scheduler.start()
 
-# Запуск polling
-if __name__ == "__main__":
-    token = os.getenv("BOT_TOKEN")
-    app = ApplicationBuilder().token(token).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(register_callback, pattern="register"))
-    
-    print("🤖 Бот запущен в режиме polling...")
-    app.run_polling()
+TOKEN = os.environ["BOT_TOKEN"]
+HOSTNAME = os.environ["RENDER_EXTERNAL_HOSTNAME"]
+WEBHOOK_URL = f"https://{HOSTNAME}/webhook"
+
+app = ApplicationBuilder().token(TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CallbackQueryHandler(register_callback, pattern="register"))
+
+print(f"🚀 Webhook URL: {WEBHOOK_URL}")
+app.run_webhook(
+    listen="0.0.0.0",
+    port=int(os.environ.get("PORT", 10000)),
+    webhook_url=WEBHOOK_URL
+)
