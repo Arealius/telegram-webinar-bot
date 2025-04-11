@@ -1,0 +1,13 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//My Company//EN
+BEGIN:VEVENT
+UID:webinar-20250412T1800@example.com
+DTSTAMP:20250411T120000Z
+DTSTART:20250412T150000Z
+DTEND:20250412T160000Z
+SUMMARY:Вебинар: ИИ и Бинарный маркетинг
+DESCRIPTION:Присоединяйтесь к нашему вебинару, на котором мы обсудим технологии искусственного интеллекта в бинарном маркетинге.
+LOCATION:Онлайн
+END:VEVENT
+END:VCALENDAR
