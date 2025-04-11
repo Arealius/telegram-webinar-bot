@@ -13,7 +13,7 @@ async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    calendar_keyboard = [[InlineKeyboardButton("📅 Додати до календаря", url="https://raw.githubusercontent.com/Arealius/telegram-webinar-bot/refs/heads/main/event.ics")]]
+    calendar_keyboard = [[InlineKeyboardButton("📅 Додати до календаря", url="https://calendar.google.com/calendar/r/eventedit?text=%D0%92%D0%B5%D0%B1%D0%B8%D0%BD%D0%B0%D1%80%3A+%D0%98%D0%98+%D0%B8+%D0%B1%D0%B8%D0%BD%D0%B0%D1%80%D0%BD%D1%8B%D0%B9+%D0%BC%D0%B0%D1%80%D0%BA%D0%B5%D1%82%D0%B8%D0%BD%D0%B3&dates=20250412T150000Z/20250412T160000Z&details=%D0%9F%D1%80%D0%B8%D1%81%D0%BE%D0%B4%D0%B8%D0%BD%D0%B5%D0%B9%D1%82%D0%B5%D1%81%D1%8C+%D0%BA+%D0%B2%D0%B5%D0%B1%D0%B8%D0%BD%D0%B0%D1%80%D1%83&location=%D0%9E%D0%BD%D0%BB%D0%B0%D0%B9%D0%BD")]]
     calendar_markup = InlineKeyboardMarkup(calendar_keyboard)
 
     await query.message.reply_text(
