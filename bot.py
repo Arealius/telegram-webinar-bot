@@ -19,9 +19,10 @@ app.add_handler(CommandHandler("start", start))
 
 print("🌐 Устанавливаю webhook:", WEBHOOK_URL)
 
+# Запуск вебхука
 app.run_webhook(
     listen="0.0.0.0",
     port=8443,
     webhook_url=WEBHOOK_URL,
-    webhook_path=WEBHOOK_PATH
+    # ⚠️ 'webhook_path' больше не нужен и вызывает ошибку
 )
