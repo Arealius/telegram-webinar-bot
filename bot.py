@@ -4,10 +4,8 @@ import os, asyncio
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 
-# Глобальное множество для хранения chat_id зарегистрированных пользователей
 registered_users = set()
 
-# Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat.id
     registered_users.add(chat_id)
@@ -18,7 +16,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-# Обработка кнопки регистрации
 async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -37,7 +34,6 @@ async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         caption="Бонус: как использовать ИИ для анализа договоров"
     )
 
-# Уведомление за 15 минут до вебинара
 def notify_webinar():
     loop = asyncio.get_event_loop()
     for chat_id in list(registered_users):
@@ -46,22 +42,28 @@ def notify_webinar():
             loop
         )
 
-# Уведомление на 11.04.2025 в 22:00 по Киеву
 scheduler = BackgroundScheduler(timezone="Europe/Kiev")
 scheduler.add_job(notify_webinar, 'date', run_date=datetime(2025, 4, 11, 22, 45))
 scheduler.start()
 
-# Чтение токена и запуск Webhook
 token = os.environ.get("BOT_TOKEN")
+render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+
+if not token:
+    raise RuntimeError("BOT_TOKEN не установлен в переменных окружения.")
+
+if not render_host:
+    raise RuntimeError("RENDER_EXTERNAL_HOSTNAME не установлен — Render пока не выдал публичный URL.")
+
+WEBHOOK_URL = f"https://{render_host}/webhook"
+
 app = ApplicationBuilder().token(token).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(register_callback, pattern="register"))
 
-# URL твоего проекта на Render
-WEBHOOK_URL = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/webhook"
-
 app.run_webhook(
     listen="0.0.0.0",
     port=int(os.environ.get("PORT", 10000)),
+    webhook_path="/webhook",
     webhook_url=WEBHOOK_URL
 )
