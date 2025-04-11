@@ -48,7 +48,7 @@ def notify_webinar():
 
 # Уведомление на 11.04.2025 в 22:00 по Киеву
 scheduler = BackgroundScheduler(timezone="Europe/Kiev")
-scheduler.add_job(notify_webinar, 'date', run_date=datetime(2025, 4, 11, 22, 15))
+scheduler.add_job(notify_webinar, 'date', run_date=datetime(2025, 4, 11, 22, 45))
 scheduler.start()
 
 # Чтение токена и запуск Webhook
