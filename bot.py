@@ -8,7 +8,7 @@ load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
 HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
-WEBHOOK_PATH = f"/{TOKEN}"
+WEBHOOK_PATH = f"/webhook/{TOKEN}"
 WEBHOOK_URL = f"https://{HOSTNAME}{WEBHOOK_PATH}"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -17,10 +17,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 
-print("🌐 Webhook URL:", WEBHOOK_URL)
+print("🌐 Устанавливаю webhook:", WEBHOOK_URL)
 
 app.run_webhook(
     listen="0.0.0.0",
     port=8443,
     webhook_url=WEBHOOK_URL,
+    webhook_path=WEBHOOK_PATH
 )
