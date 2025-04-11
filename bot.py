@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFi
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 import os, asyncio
 from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
 
 # Глобальное множество для хранения chat_id зарегистрированных пользователей
 registered_users = set()
@@ -41,7 +42,7 @@ async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         caption="Бонус: как использовать ИИ для анализа договоров"
     )
 
-# Функция-уведомление, которую вызовет планировщик: отправляет сообщение "Внимание!" за 15 минут до вебинара
+# Функция-уведомление, которую вызовет планировщик: отправляет сообщение "Внимание! Вебинар начнется через 15 минут!" 
 def notify_webinar():
     loop = asyncio.get_event_loop()
     for chat_id in list(registered_users):
@@ -50,10 +51,13 @@ def notify_webinar():
             loop
         )
 
-# Настройка планировщика APScheduler
-# Здесь уведомление будет отправлено каждый день в 17:45 по киевскому времени (если вебинар проходит в 18:00)
+# Задаем конкретную дату и время для уведомления.
+# Например, уведомление в 17:45 12 апреля 2025 года по киевскому времени.
+notification_datetime = datetime(2025, 4, 11, 21, 16)
+
+# Настройка планировщика APScheduler для однократного уведомления
 scheduler = BackgroundScheduler(timezone="Europe/Kiev")
-scheduler.add_job(notify_webinar, 'cron', hour=17, minute=45)
+scheduler.add_job(notify_webinar, 'date', run_date=notification_datetime)
 scheduler.start()
 
 # Получаем токен из переменной окружения и создаем объект бота
