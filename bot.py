@@ -1,7 +1,7 @@
 import os
 import asyncio
 from datetime import datetime
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputFile
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
@@ -18,23 +18,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
-        "Привіт! 👋
-На вебінарі “Автоматизуй рутину з АІ” я покажу, як використовувати штучний інтелект для автоматизації процесів і особистих задач.
+        """Привет! 👋
+На вебинаре “Автоматизируй рутину с ИИ” я покажу, как использовать искусственный интеллект для автоматизации процессов и личных задач.
 
-Вебінар відбудеться сьогодні:
-06.04.2025 о 17:00 Варшава | 18:00 Київ.
+Вебинар состоится сегодня:
+06.04.2025 в 17:00 Варшава | 18:00 Киев.
 
+Никакой лишней теории — только практические инструменты, которые уже сегодня помогут сэкономить время и ресурсы. Вы узнаете:
 
-Жодної зайвої теорії – тільки практичні інструменти, які вже сьогодні допоможуть зекономити час та ресурси. Ви дізнаєтесь:
+✅ Как автоматизировать рутинные задачи без программирования  
+✅ Какие ИИ-инструменты помогут в работе и жизни  
+✅ Реальные кейсы, которые я ежедневно использую в своих компаниях
 
-✅ Як автоматизувати рутинні завдання без програмування
-✅ Які інструменти АІ допоможуть у роботі та житті
-✅ Реальні кейси, які я щодня використовую у своїх компаніях
-
-
-Натисніть “Зареєструватися” та отримайте подарунок 🎁 
-30-хвилинний безкоштовний урок:
-“Як автоматизувати обробку документів та роботу юриста за допомогою АІ”.",
+Нажмите “Зарегистрироваться” и получите подарок 🎁  
+30-минутный бесплатный урок:  
+“Как автоматизировать обработку документов и работу юриста с помощью ИИ”.""",
         reply_markup=reply_markup
     )
 
@@ -63,14 +61,16 @@ def notify_webinar():
     loop = asyncio.get_event_loop()
     for chat_id in registered_users:
         asyncio.run_coroutine_threadsafe(
-            app.bot.send_message(chat_id, "🔔 Внимание! Вебинар начнется через 15 минут!"),
+            app.bot.send_message(chat_id, "🔔 Напоминание! Вебинар начнется через 15 минут!"),
             loop
         )
 
+# Настройка планировщика
 scheduler = BackgroundScheduler(timezone="Europe/Kiev")
-scheduler.add_job(notify_webinar, 'date', run_date=datetime(2025, 4, 11, 18, 45))
+scheduler.add_job(notify_webinar, 'date', run_date=datetime(2025, 4, 12, 3, 45))
 scheduler.start()
 
+# Запуск бота
 TOKEN = os.getenv("BOT_TOKEN")
 
 app = ApplicationBuilder().token(TOKEN).build()
