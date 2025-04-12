@@ -2,7 +2,6 @@ import os
 import json
 import asyncio
 from datetime import datetime, timedelta
-from pytz import timezone
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -10,26 +9,28 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- Хранилище пользователей ---
-registered_users = set()
+# 📁 JSON-файл хранения
+USERS_FILE = "registered_users.json"
 
+# 📥 Загрузка зарегистрированных пользователей
 def load_users():
-    global registered_users
-    try:
-        with open("users.json", "r") as f:
-            registered_users = set(json.load(f))
-    except FileNotFoundError:
-        registered_users = set()
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as f:
+            return set(json.load(f))
+    return set()
 
-def save_users():
-    with open("users.json", "w") as f:
-        json.dump(list(registered_users), f)
+# 💾 Сохранение пользователей
+def save_users(users):
+    with open(USERS_FILE, "w") as f:
+        json.dump(list(users), f)
 
-# --- Команда /start ---
+registered_users = load_users()
+
+# 📲 Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     registered_users.add(chat_id)
-    save_users()
+    save_users(registered_users)
 
     keyboard = [[InlineKeyboardButton("Зарегистрироваться на вебинар", callback_data="register")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -48,10 +49,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup
     )
 
-# --- Обработка кнопки ---
+# 📥 Обработка кнопки регистрации
 async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+
+    chat_id = query.from_user.id
+    registered_users.add(chat_id)
+    save_users(registered_users)
 
     calendar_keyboard = [[InlineKeyboardButton(
         "Добавить в календарь",
@@ -70,29 +75,28 @@ async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         caption="🎁 Бонус: как использовать ИИ для анализа договоров"
     )
 
-# --- Уведомление ---
+# 🔔 Уведомление перед вебинаром
 def notify_webinar():
     loop = asyncio.get_event_loop()
     for chat_id in registered_users:
-        asyncio.run_coroutine_threadsafe(
-            app.bot.send_message(chat_id, "🔔 Напоминание: вебинар начнется через 15 минут!"),
-            loop
-        )
+        try:
+            asyncio.run_coroutine_threadsafe(
+                app.bot.send_message(chat_id, "🔔 Напоминание: вебинар начнется через 15 минут!"),
+                loop
+            )
+        except Exception as e:
+            print(f"Ошибка при отправке уведомления для chat_id {chat_id}: {e}")
 
-# --- Планировщик с учетом Киева ---
+# 🕒 Планировщик уведомлений
 scheduler = BackgroundScheduler(timezone="Europe/Kiev")
-kiev_time = datetime.now(timezone("Europe/Kiev")) + timedelta(minutes=3)
-scheduler.add_job(notify_webinar, 'date', run_date=kiev_time)
+scheduler.add_job(notify_webinar, 'date', run_date=datetime.now() + timedelta(minutes=5))
 scheduler.start()
 
-# --- Запуск бота ---
+# 🚀 Запуск бота
 TOKEN = os.getenv("BOT_TOKEN")
 app = ApplicationBuilder().token(TOKEN).build()
-
-load_users()
-
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(register_callback, pattern="register"))
 
-print("🔁 Бот запущен в режиме polling...")
+print("🔁 Бот запущен в режиме polling. Ждём 5 минут для уведомления...")
 app.run_polling()
