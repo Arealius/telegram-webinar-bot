@@ -39,7 +39,7 @@ async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     await query.message.reply_video(
-        video="https://app.infinitysync.net/images/bonus.mp4",
+        video="https://infinitysync.net/images/bonus.mp4",
         caption="Бонус: как использовать ИИ для анализа договоров"
     )
 
