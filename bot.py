@@ -26,6 +26,10 @@ def save_users(users):
 
 registered_users = load_users()
 
+# 🕒 Планировщик
+scheduler = BackgroundScheduler(timezone="Europe/Kiev")
+scheduler.start()
+
 # 📲 Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
@@ -58,6 +62,29 @@ async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     registered_users.add(chat_id)
     save_users(registered_users)
 
+    # Устанавливаем дату вебинара (замени при необходимости)
+    webinar_time = datetime(2025, 4, 12, 18, 0)  # Киев 18:00
+
+    # 🕔 Напоминание за 5 минут
+    scheduler.add_job(
+        lambda: asyncio.run_coroutine_threadsafe(
+            app.bot.send_message(chat_id, "🔔 Напоминание: вебинар начнется через 5 минут!"),
+            asyncio.get_event_loop()
+        ),
+        'date',
+        run_date=webinar_time - timedelta(minutes=5)
+    )
+
+    # 🕐 Напоминание за 1 минуту
+    scheduler.add_job(
+        lambda: asyncio.run_coroutine_threadsafe(
+            app.bot.send_message(chat_id, "⏰ Вебинар начинается через 1 минуту! Заходите!"),
+            asyncio.get_event_loop()
+        ),
+        'date',
+        run_date=webinar_time - timedelta(minutes=1)
+    )
+
     calendar_keyboard = [[InlineKeyboardButton(
         "Добавить в календарь",
         url="https://calendar.google.com/calendar/r/eventedit?text=Вебинар:+ИИ+и+бинарный+маркетинг&dates=20250412T150000Z/20250412T160000Z&details=Присоединяйтесь+к+нашему+вебинару,+где+мы+рассмотрим+технологии+ИИ+в+бинарном+маркетинге&location=Онлайн"
@@ -75,28 +102,11 @@ async def register_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         caption="🎁 Бонус: как использовать ИИ для анализа договоров"
     )
 
-# 🔔 Уведомление перед вебинаром
-def notify_webinar():
-    loop = asyncio.get_event_loop()
-    for chat_id in registered_users:
-        try:
-            asyncio.run_coroutine_threadsafe(
-                app.bot.send_message(chat_id, "🔔 Напоминание: вебинар начнется через 15 минут!"),
-                loop
-            )
-        except Exception as e:
-            print(f"Ошибка при отправке уведомления для chat_id {chat_id}: {e}")
-
-# 🕒 Планировщик уведомлений
-scheduler = BackgroundScheduler(timezone="Europe/Kiev")
-scheduler.add_job(notify_webinar, 'date', run_date=datetime.now() + timedelta(minutes=5))
-scheduler.start()
-
 # 🚀 Запуск бота
 TOKEN = os.getenv("BOT_TOKEN")
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(register_callback, pattern="register"))
 
-print("🔁 Бот запущен в режиме polling. Ждём 5 минут для уведомления...")
+print("🔁 Бот запущен. Уведомления будут отправлены за 5 и 1 минуту до вебинара.")
 app.run_polling()
